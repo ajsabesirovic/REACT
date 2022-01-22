@@ -10,24 +10,39 @@ export default function Login() {
 
       const inputHandler = (e) => {
         e.preventDefault();
-        console.log(e)
-        // console.log()
-        // setUser((prevState) => {
-        //   return {
-        //     ...prevState,
-        //     [e.target.name]:e.target.value
-        //   };
-        // });
+        setUser((prevState) => {
+          return {
+            ...prevState,
+            [e.target.name]:e.target.value
+          };
+        });
       };
-    const login = () => {axios
-      .post("https://serene-fortress-45917.herokuapp.com/auth/login", {
+    const login =async () => { 
+      let res = await axios.post("https://serene-fortress-45917.herokuapp.com/auth/login", {
         email: user.email,
         password: user.password,
       })
+      console.log(res.data.data)
         setUser({
             email: "",
             password: ""
           });
+
+          const d = new Date();
+          d.setTime(d.getTime() + 2000);
+          let expires = "expires="+ d.toUTCString();
+       
+      localStorage.setItem('access_token',JSON.stringify(res.data.data.access_token))
+      localStorage.setItem('refresh_token',JSON.stringify(res.data.data.refresh_token))
+      sessionStorage.setItem('access_token',JSON.stringify(res.data.data.access_token))
+      sessionStorage.setItem('refresh_token',JSON.stringify(res.data.data.refresh_token))
+      document.cookie = `access_token=${JSON.stringify(res.data.data.access_token)}`;
+      document.cookie = `refresh_token=${JSON.stringify(res.data.data.refresh_token)}; ${expires}`;
+    }
+
+    const logout = () => {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
     }
      return (
         <div>
@@ -43,10 +58,14 @@ export default function Login() {
           }}  placeholder="password" name="password" type='password' value={user.password}></input>
         
         <button onClick={login} type="submit">Login</button>
+        <button onClick={logout} type="submit">Logout</button>
 
         <button>
             <Link to={"/"}>Go to home</Link>
         </button>
+
+        <p>{JSON.parse(localStorage.getItem('refresh_token'))}</p>
+)}
         </div>
     )
 }
